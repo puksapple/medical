@@ -62,7 +62,7 @@ public class AuthService {
         emailVerificationTokenRepository.save(verificationToken);
 
         String verificationLink =
-                "http://localhost:4790/api/auth/verify-email?token=" + verificationTokenValue;
+                "https://medical-production-2187.up.railway.app/api/auth/verify-email?token=" + verificationTokenValue;
 
         emailService.sendEmail(
                 savedUser.getEmail(),
