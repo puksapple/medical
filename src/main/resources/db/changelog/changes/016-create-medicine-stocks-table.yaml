@@ -1,0 +1,62 @@
+databaseChangeLog:
+  - changeSet:
+      id: 016-create-medicine-stocks-table
+      author: puks
+
+      changes:
+        - createTable:
+            tableName: medicine_stocks
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: company_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: medicine_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: quantity
+                  type: INT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: batch_no
+                  type: VARCHAR(100)
+
+              - column:
+                  name: expiry_date
+                  type: DATE
+
+              - column:
+                  name: created_at
+                  type: DATETIME
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: medicine_stocks
+            baseColumnNames: company_id
+            referencedTableName: companies
+            referencedColumnNames: id
+            constraintName: fk_medicine_stocks_companies
+
+        - addForeignKeyConstraint:
+            baseTableName: medicine_stocks
+            baseColumnNames: medicine_id
+            referencedTableName: medicines
+            referencedColumnNames: id
+            constraintName: fk_medicine_stocks_medicines

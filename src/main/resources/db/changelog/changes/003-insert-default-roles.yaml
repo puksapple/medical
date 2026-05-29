@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-insert-default-roles
+      author: puks
+
+      changes:
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: name
+                  value: SUPER_ADMIN
+
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: name
+                  value: COMPANY_ADMIN
+
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: name
+                  value: DOCTOR
+
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: name
+                  value: NURSE
+
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: name
+                  value: RECEPTIONIST
+
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: name
+                  value: PATIENT

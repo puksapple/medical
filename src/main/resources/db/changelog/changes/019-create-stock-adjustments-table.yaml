@@ -1,0 +1,64 @@
+databaseChangeLog:
+  - changeSet:
+      id: 019-create-stock-adjustments-table
+      author: puks
+
+      changes:
+        - createTable:
+            tableName: stock_adjustments
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: company_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: medicine_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: quantity
+                  type: INT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: adjustment_type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: reason
+                  type: VARCHAR(500)
+
+              - column:
+                  name: created_at
+                  type: DATETIME
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: stock_adjustments
+            baseColumnNames: company_id
+            referencedTableName: companies
+            referencedColumnNames: id
+            constraintName: fk_stock_adjustments_companies
+
+        - addForeignKeyConstraint:
+            baseTableName: stock_adjustments
+            baseColumnNames: medicine_id
+            referencedTableName: medicines
+            referencedColumnNames: id
+            constraintName: fk_stock_adjustments_medicines

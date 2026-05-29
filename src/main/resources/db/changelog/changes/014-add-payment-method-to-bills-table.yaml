@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 014-add-payment-method-to-bills-table
+      author: puks
+
+      changes:
+        - addColumn:
+            tableName: bills
+            columns:
+              - column:
+                  name: payment_method
+                  type: VARCHAR(50)

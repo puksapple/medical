@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 020-add-active-to-medicines-table
+      author: puks
+
+      changes:
+        - addColumn:
+            tableName: medicines
+            columns:
+              - column:
+                  name: active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false

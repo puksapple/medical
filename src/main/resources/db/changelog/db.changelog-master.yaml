@@ -1,0 +1,51 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changes/001-create-roles-table.yaml
+
+  - include:
+      file: db/changelog/changes/002-create-users-table.yaml
+
+  - include:
+      file: db/changelog/changes/003-insert-default-roles.yaml
+
+  - include:
+      file: db/changelog/changes/004-create-password-reset-tokens-table.yaml
+
+  - include:
+      file: db/changelog/changes/006-create-email-verification-tokens-table.yaml
+
+  - include:
+      file: db/changelog/changes/009-create-companies-table.yaml
+
+  - include:
+      file: db/changelog/changes/010-add-company-id-to-users-table.yaml
+
+  - include:
+      file: db/changelog/changes/011-create-medicines-table.yaml
+
+  - include:
+      file: db/changelog/changes/012-create-bills-table.yaml
+
+  - include:
+      file: db/changelog/changes/013-create-bill-items-table.yaml
+
+  - include:
+      file: db/changelog/changes/014-add-payment-method-to-bills-table.yaml
+
+  - include:
+      file: db/changelog/changes/015-add-discount-to-bills-table.yaml
+
+  - include:
+      file: db/changelog/changes/016-create-medicine-stocks-table.yaml
+
+  - include:
+      file: db/changelog/changes/017-create-purchases-table.yaml
+
+  - include:
+      file: db/changelog/changes/018-create-purchase-items-table.yaml
+
+  - include:
+      file: db/changelog/changes/019-create-stock-adjustments-table.yaml
+
+  - include:
+      file: db/changelog/changes/020-add-active-to-medicines-table.yaml

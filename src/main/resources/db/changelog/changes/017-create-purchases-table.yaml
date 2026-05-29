@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: 017-create-purchases-table
+      author: puks
+
+      changes:
+        - createTable:
+            tableName: purchases
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: company_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: supplier_name
+                  type: VARCHAR(255)
+
+              - column:
+                  name: invoice_number
+                  type: VARCHAR(100)
+
+              - column:
+                  name: purchase_date
+                  type: DATETIME
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: total_amount
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: purchases
+            baseColumnNames: company_id
+            referencedTableName: companies
+            referencedColumnNames: id
+            constraintName: fk_purchases_companies

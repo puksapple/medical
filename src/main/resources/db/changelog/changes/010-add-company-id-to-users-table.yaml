@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 010-add-company-id-to-users-table
+      author: puks
+
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: company_id
+                  type: BIGINT
+
+        - addForeignKeyConstraint:
+            baseTableName: users
+            baseColumnNames: company_id
+            referencedTableName: companies
+            referencedColumnNames: id
+            constraintName: fk_users_companies

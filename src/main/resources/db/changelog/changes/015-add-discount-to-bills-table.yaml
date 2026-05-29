@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 015-add-discount-to-bills-table
+      author: puks
+
+      changes:
+        - addColumn:
+            tableName: bills
+            columns:
+              - column:
+                  name: discount
+                  type: DECIMAL(10,2)
+                  defaultValueNumeric: 0
