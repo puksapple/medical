@@ -5,6 +5,7 @@ import com.asarfi.acquirer.medical.entity.Company;
 import com.asarfi.acquirer.medical.entity.Medicine;
 import com.asarfi.acquirer.medical.repository.CompanyRepository;
 import com.asarfi.acquirer.medical.repository.MedicineRepository;
+import com.asarfi.acquirer.medical.repository.MedicineStockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ public class MedicineService {
 
     private final MedicineRepository medicineRepository;
     private final CompanyRepository companyRepository;
+    private final MedicineStockRepository medicineStockRepository;
 
     public MedicineDto createMedicine(MedicineDto medicineDto) {
 
@@ -73,6 +75,15 @@ public class MedicineService {
 
         Medicine medicine = medicineRepository.findById(medicineId)
                 .orElseThrow(() -> new RuntimeException("Medicine not found"));
+
+        Integer totalStock =
+                medicineStockRepository.getTotalStockByMedicineId(medicineId);
+
+        if (totalStock != null && totalStock > 0) {
+            throw new RuntimeException(
+                    "Medicine has remaining stock. Please sell or adjust stock to 0 before deactivating."
+            );
+        }
 
         medicine.setActive(false);
 
