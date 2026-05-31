@@ -196,7 +196,9 @@ public class PurchaseService {
         if (purchaseDto.getItems() != null) {
 
             if (purchaseDto.getItems().size() != purchaseItems.size()) {
-                throw new RuntimeException("Purchase item count cannot be changed during update");
+                throw new RuntimeException(
+                        "Purchase item count cannot be changed during update"
+                );
             }
 
             for (int i = 0; i < purchaseDto.getItems().size(); i++) {
@@ -207,8 +209,9 @@ public class PurchaseService {
                 if (itemDto.getPurchasePrice() != null) {
                     item.setPurchasePrice(itemDto.getPurchasePrice());
 
-                    BigDecimal subtotal = itemDto.getPurchasePrice()
-                            .multiply(BigDecimal.valueOf(item.getQuantity()));
+                    BigDecimal subtotal =
+                            itemDto.getPurchasePrice()
+                                    .multiply(BigDecimal.valueOf(item.getQuantity()));
 
                     item.setSubtotal(subtotal);
                 }
@@ -234,21 +237,7 @@ public class PurchaseService {
 
         Purchase finalPurchase = purchaseRepository.save(purchase);
 
-        PurchaseDto response = new PurchaseDto();
-        response.setId(finalPurchase.getId());
-        response.setCompanyId(finalPurchase.getCompany().getId());
-
-        if (finalPurchase.getSupplier() != null) {
-            response.setSupplierId(finalPurchase.getSupplier().getId());
-            response.setSupplierName(finalPurchase.getSupplier().getName());
-        } else {
-            response.setSupplierName(finalPurchase.getSupplierName());
-        }
-
-        response.setInvoiceNumber(finalPurchase.getInvoiceNumber());
-        response.setTotalAmount(finalPurchase.getTotalAmount());
-
-        return response;
+        return getPurchaseById(finalPurchase.getId());
     }
 
 }
