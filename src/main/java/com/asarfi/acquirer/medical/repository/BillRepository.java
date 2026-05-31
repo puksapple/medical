@@ -36,4 +36,6 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate
     );
+
+    
 }
