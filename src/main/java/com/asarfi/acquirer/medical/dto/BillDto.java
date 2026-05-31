@@ -25,4 +25,8 @@ public class BillDto {
     private String paymentMethod;
 
     private BigDecimal discount;
+
+    private Long customerId;
+
+
 }

@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 024-add-customer-id-to-bills-table
+      author: puks
+
+      changes:
+        - addColumn:
+            tableName: bills
+            columns:
+              - column:
+                  name: customer_id
+                  type: BIGINT
+
+        - addForeignKeyConstraint:
+            baseTableName: bills
+            baseColumnNames: customer_id
+            referencedTableName: customers
+            referencedColumnNames: id
+            constraintName: fk_bills_customers

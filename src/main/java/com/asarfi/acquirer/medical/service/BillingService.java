@@ -2,16 +2,8 @@ package com.asarfi.acquirer.medical.service;
 
 import com.asarfi.acquirer.medical.dto.BillDto;
 import com.asarfi.acquirer.medical.dto.BillItemDto;
-import com.asarfi.acquirer.medical.entity.Bill;
-import com.asarfi.acquirer.medical.entity.BillItem;
-import com.asarfi.acquirer.medical.entity.Company;
-import com.asarfi.acquirer.medical.entity.Medicine;
-import com.asarfi.acquirer.medical.entity.MedicineStock;
-import com.asarfi.acquirer.medical.repository.BillItemRepository;
-import com.asarfi.acquirer.medical.repository.BillRepository;
-import com.asarfi.acquirer.medical.repository.CompanyRepository;
-import com.asarfi.acquirer.medical.repository.MedicineRepository;
-import com.asarfi.acquirer.medical.repository.MedicineStockRepository;
+import com.asarfi.acquirer.medical.entity.*;
+import com.asarfi.acquirer.medical.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +22,7 @@ public class BillingService {
     private final CompanyRepository companyRepository;
     private final MedicineRepository medicineRepository;
     private final MedicineStockRepository medicineStockRepository;
+    private final CustomerRepository customerRepository;
 
 
     @Transactional
@@ -38,13 +31,26 @@ public class BillingService {
         Company company = companyRepository.findById(billDto.getCompanyId())
                 .orElseThrow(() -> new RuntimeException("Company not found"));
 
+        Customer customer = null;
+
+        if (billDto.getCustomerId() != null) {
+            customer = customerRepository.findById(billDto.getCustomerId())
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+        }
+
         Bill bill = new Bill();
         bill.setCompany(company);
-        bill.setCustomerName(billDto.getCustomerName());
         bill.setPaymentMethod(billDto.getPaymentMethod());
         bill.setBillNumber("BILL-" + UUID.randomUUID().toString().substring(0, 8));
         bill.setCreatedAt(LocalDateTime.now());
         bill.setTotalAmount(BigDecimal.ZERO);
+
+        if (customer != null) {
+            bill.setCustomer(customer);
+            bill.setCustomerName(customer.getName());
+        } else {
+            bill.setCustomerName(billDto.getCustomerName());
+        }
 
         Bill savedBill = billRepository.save(bill);
 
@@ -118,6 +124,8 @@ public class BillingService {
         savedBill.setDiscount(discount);
         savedBill.setTotalAmount(totalAmount.subtract(discount));
 
+
+
         Bill finalBill = billRepository.save(savedBill);
 
         BillDto response = new BillDto();
@@ -128,6 +136,13 @@ public class BillingService {
         response.setPaymentMethod(finalBill.getPaymentMethod());
         response.setDiscount(finalBill.getDiscount());
         response.setTotalAmount(finalBill.getTotalAmount());
+
+        if (finalBill.getCustomer() != null) {
+            response.setCustomerId(finalBill.getCustomer().getId());
+            response.setCustomerName(finalBill.getCustomer().getName());
+        } else {
+            response.setCustomerName(finalBill.getCustomerName());
+        }
 
         return response;
     }
