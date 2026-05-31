@@ -104,6 +104,10 @@ public class MedicineService {
         dto.setGenericName(medicine.getGenericName());
         dto.setPrice(medicine.getPrice());
         dto.setActive(medicine.getActive());
+        Integer stockQuantity =
+                medicineStockRepository.getTotalStockByMedicineId(medicine.getId());
+
+        dto.setStockQuantity(stockQuantity);
 
         return dto;
     }
