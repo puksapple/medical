@@ -9,4 +9,6 @@ import java.util.List;
 public interface BillItemRepository extends JpaRepository<BillItem, Long> {
 
     List<BillItem> findByBill(Bill bill);
+
+    List<BillItem> findByBillIn(List<Bill> bills);
 }

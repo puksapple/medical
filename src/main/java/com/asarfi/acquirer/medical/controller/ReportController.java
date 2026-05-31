@@ -1,9 +1,6 @@
 package com.asarfi.acquirer.medical.controller;
 
-import com.asarfi.acquirer.medical.dto.MedicineStockDto;
-import com.asarfi.acquirer.medical.dto.PurchaseReportDto;
-import com.asarfi.acquirer.medical.dto.SalesReportDto;
-import com.asarfi.acquirer.medical.dto.StockAdjustmentDto;
+import com.asarfi.acquirer.medical.dto.*;
 import com.asarfi.acquirer.medical.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -58,5 +55,18 @@ public class ReportController {
             @RequestParam Long companyId
     ) {
         return reportService.getStockAdjustmentReport(companyId);
+    }
+
+    @GetMapping("/profit")
+    public ProfitReportDto getProfitReport(
+            @RequestParam Long companyId,
+            @RequestParam LocalDate fromDate,
+            @RequestParam LocalDate toDate
+    ) {
+        return reportService.getProfitReport(
+                companyId,
+                fromDate,
+                toDate
+        );
     }
 }
