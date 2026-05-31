@@ -8,6 +8,7 @@ import com.asarfi.acquirer.medical.repository.MedicineRepository;
 import com.asarfi.acquirer.medical.repository.MedicineStockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class MedicineService {
     private final CompanyRepository companyRepository;
     private final MedicineStockRepository medicineStockRepository;
 
+    @Transactional
     public MedicineDto createMedicine(MedicineDto medicineDto) {
 
         Company company = companyRepository.findById(medicineDto.getCompanyId())
@@ -37,6 +39,7 @@ public class MedicineService {
         return mapToDto(savedMedicine);
     }
 
+    @Transactional
     public List<MedicineDto> searchMedicines(
             Long companyId,
             String keyword
@@ -55,6 +58,7 @@ public class MedicineService {
                 .toList();
     }
 
+    @Transactional
     public MedicineDto updateMedicine(
             Long medicineId,
             MedicineDto medicineDto
@@ -91,6 +95,7 @@ public class MedicineService {
 
         return "Medicine deactivated successfully";
     }
+
 
     private MedicineDto mapToDto(Medicine medicine) {
 

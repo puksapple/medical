@@ -7,6 +7,7 @@ import com.asarfi.acquirer.medical.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -24,6 +25,7 @@ public class AuthService {
     private final EmailService emailService;
     private final CompanyRepository companyRepository;
 
+    @Transactional
     public UserDto register(UserDto userDto) {
 
         if (userRepository.existsByEmail(userDto.getEmail())) {
@@ -87,7 +89,7 @@ public class AuthService {
 
         return response;
     }
-
+@Transactional
     public UserDto login(UserDto userDto) {
 
         User user = userRepository.findByEmail(userDto.getEmail())
@@ -114,6 +116,7 @@ public class AuthService {
         return response;
     }
 
+    @Transactional
     public String forgotPassword(String email) {
 
         User user = userRepository.findByEmail(email)
@@ -131,6 +134,7 @@ public class AuthService {
         return token;
     }
 
+    @Transactional
     public String resetPassword(String token, String newPassword) {
 
         PasswordResetToken resetToken =
@@ -150,6 +154,8 @@ public class AuthService {
         return "Password reset successful";
     }
 
+
+    @Transactional
     public String changePassword(String email, String oldPassword, String newPassword) {
 
         User user = userRepository.findByEmail(email)
@@ -184,6 +190,8 @@ public class AuthService {
 
         return "Email verified successfully";
     }
+
+    @Transactional
 
     public UserDto getCurrentUser(String email) {
 

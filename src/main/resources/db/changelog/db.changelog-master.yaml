@@ -49,3 +49,9 @@ databaseChangeLog:
 
   - include:
       file: db/changelog/changes/020-add-active-to-medicines-table.yaml
+
+  - include:
+      file: db/changelog/changes/021-add-purchase-id-to-medicine-stocks-table.yaml
+
+  - include:
+      file: db/changelog/changes/022-create-suppliers-table.yaml

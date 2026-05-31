@@ -5,6 +5,7 @@ import com.asarfi.acquirer.medical.entity.*;
 import com.asarfi.acquirer.medical.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +19,8 @@ public class StockAdjustmentService {
     private final MedicineRepository medicineRepository;
     private final MedicineStockRepository medicineStockRepository;
 
+
+    @Transactional
     public StockAdjustmentDto createAdjustment(StockAdjustmentDto dto) {
 
         Company company = companyRepository.findById(dto.getCompanyId())
@@ -98,6 +101,8 @@ public class StockAdjustmentService {
         return response;
     }
 
+
+    @Transactional
     public List<StockAdjustmentDto> getAdjustmentsByCompany(Long companyId) {
 
         Company company = companyRepository.findById(companyId)

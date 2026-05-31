@@ -9,6 +9,7 @@ import com.asarfi.acquirer.medical.repository.CompanyRepository;
 import com.asarfi.acquirer.medical.repository.MedicineRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,6 +21,8 @@ public class DashboardService {
     private final MedicineRepository medicineRepository;
     private final BillRepository billRepository;
 
+
+    @Transactional
     public DashboardDto getDashboard(Long companyId) {
 
         Company company = companyRepository.findById(companyId)
@@ -46,6 +49,7 @@ public class DashboardService {
         return dashboardDto;
     }
 
+    @Transactional
     public List<BillDto> getRecentBills(Long companyId) {
 
         Company company = companyRepository.findById(companyId)
