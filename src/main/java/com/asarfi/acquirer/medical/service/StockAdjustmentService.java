@@ -66,13 +66,20 @@ public class StockAdjustmentService {
 
         } else if ("INCREASE".equalsIgnoreCase(dto.getAdjustmentType())) {
 
-            MedicineStock stock = new MedicineStock();
-            stock.setCompany(company);
-            stock.setMedicine(medicine);
-            stock.setQuantity(dto.getQuantity());
-            stock.setCreatedAt(LocalDateTime.now());
+            if (stocks.isEmpty()) {
+                MedicineStock stock = new MedicineStock();
+                stock.setCompany(company);
+                stock.setMedicine(medicine);
+                stock.setQuantity(dto.getQuantity());
+                stock.setCreatedAt(LocalDateTime.now());
 
-            medicineStockRepository.save(stock);
+                medicineStockRepository.save(stock);
+            } else {
+                MedicineStock stock = stocks.get(0);
+                stock.setQuantity(stock.getQuantity() + dto.getQuantity());
+
+                medicineStockRepository.save(stock);
+            }
 
         } else {
             throw new RuntimeException("Invalid adjustment type");
