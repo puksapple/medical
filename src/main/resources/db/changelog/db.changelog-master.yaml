@@ -58,3 +58,6 @@ databaseChangeLog:
 
   - include:
       file: db/changelog/changes/022-add-supplier-id-to-purchases-table.yaml
+
+  - include:
+      file: db/changelog/changes/023-create-customers-table.yaml

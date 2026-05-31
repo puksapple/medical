@@ -1,15 +1,8 @@
 package com.asarfi.acquirer.medical.service;
 
-import com.asarfi.acquirer.medical.dto.BillDto;
-import com.asarfi.acquirer.medical.dto.PurchaseDto;
-import com.asarfi.acquirer.medical.dto.PurchaseReportDto;
-import com.asarfi.acquirer.medical.dto.SalesReportDto;
-import com.asarfi.acquirer.medical.entity.Bill;
-import com.asarfi.acquirer.medical.entity.Company;
-import com.asarfi.acquirer.medical.entity.Purchase;
-import com.asarfi.acquirer.medical.repository.BillRepository;
-import com.asarfi.acquirer.medical.repository.CompanyRepository;
-import com.asarfi.acquirer.medical.repository.PurchaseRepository;
+import com.asarfi.acquirer.medical.dto.*;
+import com.asarfi.acquirer.medical.entity.*;
+import com.asarfi.acquirer.medical.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +19,9 @@ public class ReportService {
     private final BillRepository billRepository;
 
     private final PurchaseRepository purchaseRepository;
+    private final MedicineStockRepository medicineStockRepository;
+    private final MedicineRepository medicineRepository;
+    private final StockAdjustmentRepository stockAdjustmentRepository;
 
     public SalesReportDto getSalesReport(
             Long companyId,
@@ -121,5 +117,72 @@ public class ReportService {
         response.setPurchases(purchaseDtos);
 
         return response;
+    }
+
+    public List<MedicineStockDto> getStockReport(Long companyId) {
+
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new RuntimeException("Company not found"));
+
+        List<MedicineStock> stocks =
+                medicineStockRepository.findByCompany(company);
+
+        return stocks.stream().map(stock -> {
+
+            MedicineStockDto dto = new MedicineStockDto();
+
+            dto.setId(stock.getId());
+            dto.setCompanyId(company.getId());
+            dto.setMedicineId(stock.getMedicine().getId());
+            dto.setMedicineName(stock.getMedicine().getName());
+            dto.setQuantity(stock.getQuantity());
+            dto.setBatchNo(stock.getBatchNo());
+            dto.setExpiryDate(stock.getExpiryDate());
+
+            dto.setPurchaseId(
+                    stock.getPurchase() != null
+                            ? stock.getPurchase().getId()
+                            : null
+            );
+
+            dto.setSupplierName(
+                    stock.getPurchase() != null
+                            ? stock.getPurchase().getSupplierName()
+                            : null
+            );
+
+            return dto;
+
+        }).toList();
+    }
+
+
+
+    public List<StockAdjustmentDto> getStockAdjustmentReport(
+            Long companyId
+    ) {
+
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new RuntimeException("Company not found"));
+
+        List<StockAdjustment> adjustments =
+                stockAdjustmentRepository
+                        .findByCompanyOrderByCreatedAtDesc(company);
+
+        return adjustments.stream().map(adjustment -> {
+
+            StockAdjustmentDto dto = new StockAdjustmentDto();
+
+            dto.setId(adjustment.getId());
+            dto.setCompanyId(company.getId());
+            dto.setMedicineId(adjustment.getMedicine().getId());
+            dto.setMedicineName(adjustment.getMedicine().getName());
+            dto.setQuantity(adjustment.getQuantity());
+            dto.setAdjustmentType(adjustment.getAdjustmentType());
+            dto.setReason(adjustment.getReason());
+
+            return dto;
+
+        }).toList();
     }
 }
