@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 022-add-supplier-id-to-purchases-table
+      author: puks
+
+      changes:
+        - addColumn:
+            tableName: purchases
+            columns:
+              - column:
+                  name: supplier_id
+                  type: BIGINT
+
+        - addForeignKeyConstraint:
+            baseTableName: purchases
+            baseColumnNames: supplier_id
+            referencedTableName: suppliers
+            referencedColumnNames: id
+            constraintName: fk_purchases_suppliers
