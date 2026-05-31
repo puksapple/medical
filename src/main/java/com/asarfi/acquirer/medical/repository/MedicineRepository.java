@@ -24,8 +24,13 @@ public interface MedicineRepository extends JpaRepository<Medicine, Long> {
 
     Long countByCompanyAndActiveTrue(Company company);
 
-
-
-    @Query("SELECT COALESCE(SUM(ms.quantity), 0) FROM MedicineStock ms WHERE ms.medicine.id = :medicineId")
+    @Query("""
+        SELECT COALESCE(SUM(ms.quantity), 0)
+        FROM MedicineStock ms
+        WHERE ms.medicine.id = :medicineId
+        """)
     Integer getTotalStockByMedicineId(@Param("medicineId") Long medicineId);
+
+
+
 }
