@@ -1,5 +1,6 @@
 package com.asarfi.acquirer.medical.controller;
 
+import com.asarfi.acquirer.medical.dto.PurchaseReportDto;
 import com.asarfi.acquirer.medical.dto.SalesReportDto;
 import com.asarfi.acquirer.medical.service.ReportService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,20 @@ public class ReportController {
             @RequestParam LocalDate toDate
     ) {
         return reportService.getSalesReport(
+                companyId,
+                fromDate,
+                toDate
+        );
+    }
+
+
+    @GetMapping("/purchases")
+    public PurchaseReportDto getPurchaseReport(
+            @RequestParam Long companyId,
+            @RequestParam LocalDate fromDate,
+            @RequestParam LocalDate toDate
+    ) {
+        return reportService.getPurchaseReport(
                 companyId,
                 fromDate,
                 toDate
