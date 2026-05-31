@@ -170,7 +170,7 @@ public class PurchaseService {
 
         return response;
     }
-@Transactional
+    @Transactional
     public PurchaseDto updatePurchase(
             Long purchaseId,
             PurchaseDto purchaseDto
@@ -178,13 +178,20 @@ public class PurchaseService {
         Purchase purchase = purchaseRepository.findById(purchaseId)
                 .orElseThrow(() -> new RuntimeException("Purchase not found"));
 
-        purchase.setSupplierName(purchaseDto.getSupplierName());
-        purchase.setInvoiceNumber(purchaseDto.getInvoiceNumber());
+        if (purchaseDto.getSupplierId() != null) {
+            Supplier supplier = supplierRepository.findById(purchaseDto.getSupplierId())
+                    .orElseThrow(() -> new RuntimeException("Supplier not found"));
 
-        Purchase updatedPurchase = purchaseRepository.save(purchase);
+            purchase.setSupplier(supplier);
+            purchase.setSupplierName(supplier.getName());
+        }
+
+        if (purchaseDto.getInvoiceNumber() != null) {
+            purchase.setInvoiceNumber(purchaseDto.getInvoiceNumber());
+        }
 
         List<PurchaseItem> purchaseItems =
-                purchaseItemRepository.findByPurchase(updatedPurchase);
+                purchaseItemRepository.findByPurchase(purchase);
 
         if (purchaseDto.getItems() != null) {
 
@@ -197,38 +204,47 @@ public class PurchaseService {
                 PurchaseItemDto itemDto = purchaseDto.getItems().get(i);
                 PurchaseItem item = purchaseItems.get(i);
 
-                item.setPurchasePrice(itemDto.getPurchasePrice());
-                item.setBatchNo(itemDto.getBatchNo());
-                item.setExpiryDate(itemDto.getExpiryDate());
+                if (itemDto.getPurchasePrice() != null) {
+                    item.setPurchasePrice(itemDto.getPurchasePrice());
 
-                BigDecimal subtotal = itemDto.getPurchasePrice()
-                        .multiply(BigDecimal.valueOf(item.getQuantity()));
+                    BigDecimal subtotal = itemDto.getPurchasePrice()
+                            .multiply(BigDecimal.valueOf(item.getQuantity()));
 
-                item.setSubtotal(subtotal);
+                    item.setSubtotal(subtotal);
+                }
 
-                Supplier supplier = supplierRepository.findById(purchaseDto.getSupplierId())
-                        .orElseThrow(() -> new RuntimeException("Supplier not found"));
+                if (itemDto.getBatchNo() != null) {
+                    item.setBatchNo(itemDto.getBatchNo());
+                }
 
-                purchase.setSupplier(supplier);
-                purchase.setSupplierName(supplier.getName());
+                if (itemDto.getExpiryDate() != null) {
+                    item.setExpiryDate(itemDto.getExpiryDate());
+                }
 
                 purchaseItemRepository.save(item);
             }
         }
 
-        BigDecimal totalAmount = purchaseItemRepository.findByPurchase(updatedPurchase)
+        BigDecimal totalAmount = purchaseItemRepository.findByPurchase(purchase)
                 .stream()
                 .map(PurchaseItem::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        updatedPurchase.setTotalAmount(totalAmount);
+        purchase.setTotalAmount(totalAmount);
 
-        Purchase finalPurchase = purchaseRepository.save(updatedPurchase);
+        Purchase finalPurchase = purchaseRepository.save(purchase);
 
         PurchaseDto response = new PurchaseDto();
         response.setId(finalPurchase.getId());
         response.setCompanyId(finalPurchase.getCompany().getId());
-        response.setSupplierName(finalPurchase.getSupplierName());
+
+        if (finalPurchase.getSupplier() != null) {
+            response.setSupplierId(finalPurchase.getSupplier().getId());
+            response.setSupplierName(finalPurchase.getSupplier().getName());
+        } else {
+            response.setSupplierName(finalPurchase.getSupplierName());
+        }
+
         response.setInvoiceNumber(finalPurchase.getInvoiceNumber());
         response.setTotalAmount(finalPurchase.getTotalAmount());
 
