@@ -9,6 +9,7 @@ import com.asarfi.acquirer.medical.repository.MedicineRepository;
 import com.asarfi.acquirer.medical.repository.MedicineStockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,6 +23,7 @@ public class MedicineStockService {
     private final CompanyRepository companyRepository;
     private final MedicineRepository medicineRepository;
 
+    @Transactional
     public MedicineStockDto addStock(MedicineStockDto dto) {
 
         Company company = companyRepository.findById(dto.getCompanyId())
@@ -40,44 +42,29 @@ public class MedicineStockService {
 
         MedicineStock savedStock = medicineStockRepository.save(stock);
 
-        MedicineStockDto response = new MedicineStockDto();
-        response.setId(savedStock.getId());
-        response.setCompanyId(company.getId());
-        response.setMedicineId(medicine.getId());
-        response.setMedicineName(medicine.getName());
-        response.setQuantity(savedStock.getQuantity());
-        response.setBatchNo(savedStock.getBatchNo());
-        response.setExpiryDate(savedStock.getExpiryDate());
-
-        return response;
+        return mapToDto(savedStock);
     }
 
+    @Transactional
     public List<MedicineStockDto> getStockByCompany(Long companyId) {
 
         Company company = companyRepository.findById(companyId)
                 .orElseThrow(() -> new RuntimeException("Company not found"));
 
-        List<MedicineStock> stocks = medicineStockRepository.findByCompany(company);
+        List<MedicineStock> stocks =
+                medicineStockRepository.findByCompany(company);
 
-        return stocks.stream().map(stock -> {
-            MedicineStockDto dto = new MedicineStockDto();
-
-            dto.setId(stock.getId());
-            dto.setCompanyId(company.getId());
-            dto.setMedicineId(stock.getMedicine().getId());
-            dto.setMedicineName(stock.getMedicine().getName());
-            dto.setQuantity(stock.getQuantity());
-            dto.setBatchNo(stock.getBatchNo());
-            dto.setExpiryDate(stock.getExpiryDate());
-
-            return dto;
-        }).toList();
+        return stocks.stream()
+                .map(this::mapToDto)
+                .toList();
     }
 
+    @Transactional
     public List<MedicineStockDto> getLowStockMedicines(
             Long companyId,
             Integer quantity
     ) {
+
         Company company = companyRepository.findById(companyId)
                 .orElseThrow(() -> new RuntimeException("Company not found"));
 
@@ -87,25 +74,17 @@ public class MedicineStockService {
                         quantity
                 );
 
-        return stocks.stream().map(stock -> {
-            MedicineStockDto dto = new MedicineStockDto();
-
-            dto.setId(stock.getId());
-            dto.setCompanyId(company.getId());
-            dto.setMedicineId(stock.getMedicine().getId());
-            dto.setMedicineName(stock.getMedicine().getName());
-            dto.setQuantity(stock.getQuantity());
-            dto.setBatchNo(stock.getBatchNo());
-            dto.setExpiryDate(stock.getExpiryDate());
-
-            return dto;
-        }).toList();
+        return stocks.stream()
+                .map(this::mapToDto)
+                .toList();
     }
 
+    @Transactional
     public List<MedicineStockDto> getExpiringSoonMedicines(
             Long companyId,
             Integer days
     ) {
+
         Company company = companyRepository.findById(companyId)
                 .orElseThrow(() -> new RuntimeException("Company not found"));
 
@@ -119,18 +98,35 @@ public class MedicineStockService {
                         futureDate
                 );
 
-        return stocks.stream().map(stock -> {
-            MedicineStockDto dto = new MedicineStockDto();
+        return stocks.stream()
+                .map(this::mapToDto)
+                .toList();
+    }
 
-            dto.setId(stock.getId());
-            dto.setCompanyId(company.getId());
-            dto.setMedicineId(stock.getMedicine().getId());
-            dto.setMedicineName(stock.getMedicine().getName());
-            dto.setQuantity(stock.getQuantity());
-            dto.setBatchNo(stock.getBatchNo());
-            dto.setExpiryDate(stock.getExpiryDate());
+    private MedicineStockDto mapToDto(MedicineStock stock) {
 
-            return dto;
-        }).toList();
+        MedicineStockDto dto = new MedicineStockDto();
+
+        dto.setId(stock.getId());
+        dto.setCompanyId(stock.getCompany().getId());
+        dto.setMedicineId(stock.getMedicine().getId());
+        dto.setMedicineName(stock.getMedicine().getName());
+        dto.setQuantity(stock.getQuantity());
+        dto.setBatchNo(stock.getBatchNo());
+        dto.setExpiryDate(stock.getExpiryDate());
+
+        dto.setPurchaseId(
+                stock.getPurchase() != null
+                        ? stock.getPurchase().getId()
+                        : null
+        );
+
+        dto.setSupplierName(
+                stock.getPurchase() != null
+                        ? stock.getPurchase().getSupplierName()
+                        : null
+        );
+
+        return dto;
     }
 }

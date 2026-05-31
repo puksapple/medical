@@ -22,4 +22,8 @@ public class MedicineStockDto {
     private String batchNo;
 
     private LocalDate expiryDate;
+
+    private Long purchaseId;
+
+    private String supplierName;
 }

@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 021-add-purchase-id-to-medicine-stocks-table
+      author: puks
+
+      changes:
+        - addColumn:
+            tableName: medicine_stocks
+            columns:
+              - column:
+                  name: purchase_id
+                  type: BIGINT
+
+        - addForeignKeyConstraint:
+            baseTableName: medicine_stocks
+            baseColumnNames: purchase_id
+            referencedTableName: purchases
+            referencedColumnNames: id
+            constraintName: fk_medicine_stocks_purchases

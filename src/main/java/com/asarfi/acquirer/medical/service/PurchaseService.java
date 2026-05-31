@@ -6,6 +6,7 @@ import com.asarfi.acquirer.medical.entity.*;
 import com.asarfi.acquirer.medical.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ public class PurchaseService {
     private final MedicineRepository medicineRepository;
     private final MedicineStockRepository medicineStockRepository;
 
+    @Transactional
     public PurchaseDto createPurchase(PurchaseDto purchaseDto) {
 
         Company company = companyRepository.findById(purchaseDto.getCompanyId())
@@ -59,12 +61,15 @@ public class PurchaseService {
             MedicineStock stock = new MedicineStock();
             stock.setCompany(company);
             stock.setMedicine(medicine);
+            stock.setPurchase(savedPurchase);
             stock.setQuantity(itemDto.getQuantity());
             stock.setBatchNo(itemDto.getBatchNo());
             stock.setExpiryDate(itemDto.getExpiryDate());
             stock.setCreatedAt(LocalDateTime.now());
 
             medicineStockRepository.save(stock);
+
+
 
             totalAmount = totalAmount.add(subtotal);
         }
@@ -83,6 +88,7 @@ public class PurchaseService {
         return response;
     }
 
+    @Transactional
 
     public List<PurchaseDto> getPurchasesByCompany(Long companyId) {
 
@@ -107,6 +113,7 @@ public class PurchaseService {
         }).toList();
     }
 
+    @Transactional
 
     public PurchaseDto getPurchaseById(Long purchaseId) {
 
@@ -143,7 +150,7 @@ public class PurchaseService {
 
         return response;
     }
-
+@Transactional
     public PurchaseDto updatePurchase(
             Long purchaseId,
             PurchaseDto purchaseDto
@@ -161,10 +168,13 @@ public class PurchaseService {
 
         if (purchaseDto.getItems() != null) {
 
+            if (purchaseDto.getItems().size() != purchaseItems.size()) {
+                throw new RuntimeException("Purchase item count cannot be changed during update");
+            }
+
             for (int i = 0; i < purchaseDto.getItems().size(); i++) {
 
                 PurchaseItemDto itemDto = purchaseDto.getItems().get(i);
-
                 PurchaseItem item = purchaseItems.get(i);
 
                 item.setPurchasePrice(itemDto.getPurchasePrice());
@@ -180,7 +190,8 @@ public class PurchaseService {
             }
         }
 
-        BigDecimal totalAmount = purchaseItems.stream()
+        BigDecimal totalAmount = purchaseItemRepository.findByPurchase(updatedPurchase)
+                .stream()
                 .map(PurchaseItem::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 

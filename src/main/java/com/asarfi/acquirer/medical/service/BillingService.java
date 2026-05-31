@@ -14,6 +14,7 @@ import com.asarfi.acquirer.medical.repository.MedicineRepository;
 import com.asarfi.acquirer.medical.repository.MedicineStockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,6 +31,8 @@ public class BillingService {
     private final MedicineRepository medicineRepository;
     private final MedicineStockRepository medicineStockRepository;
 
+
+    @Transactional
     public BillDto createBill(BillDto billDto) {
 
         Company company = companyRepository.findById(billDto.getCompanyId())
@@ -129,6 +132,7 @@ public class BillingService {
         return response;
     }
 
+    @Transactional
     public BillDto getBillById(Long billId) {
 
         Bill bill = billRepository.findById(billId)
@@ -164,6 +168,7 @@ public class BillingService {
         return response;
     }
 
+    @Transactional
     public List<BillDto> getBillsByCompany(Long companyId) {
 
         Company company = companyRepository.findById(companyId)

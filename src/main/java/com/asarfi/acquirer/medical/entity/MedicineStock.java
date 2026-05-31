@@ -34,6 +34,12 @@ public class MedicineStock {
     @Column(name = "expiry_date")
     private LocalDate expiryDate;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "purchase_id")
+    private Purchase purchase;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+
 }
