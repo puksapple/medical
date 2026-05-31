@@ -21,6 +21,8 @@ public class PurchaseService {
     private final CompanyRepository companyRepository;
     private final MedicineRepository medicineRepository;
     private final MedicineStockRepository medicineStockRepository;
+    private final SupplierRepository supplierRepository;
+
 
     @Transactional
     public PurchaseDto createPurchase(PurchaseDto purchaseDto) {
@@ -28,9 +30,13 @@ public class PurchaseService {
         Company company = companyRepository.findById(purchaseDto.getCompanyId())
                 .orElseThrow(() -> new RuntimeException("Company not found"));
 
+        Supplier supplier = supplierRepository.findById(purchaseDto.getSupplierId())
+                .orElseThrow(() -> new RuntimeException("Supplier not found"));
+
         Purchase purchase = new Purchase();
         purchase.setCompany(company);
-        purchase.setSupplierName(purchaseDto.getSupplierName());
+        purchase.setSupplier(supplier);
+        purchase.setSupplierName(supplier.getName());
         purchase.setInvoiceNumber(purchaseDto.getInvoiceNumber());
         purchase.setPurchaseDate(LocalDateTime.now());
         purchase.setTotalAmount(BigDecimal.ZERO);
@@ -69,8 +75,6 @@ public class PurchaseService {
 
             medicineStockRepository.save(stock);
 
-
-
             totalAmount = totalAmount.add(subtotal);
         }
 
@@ -81,7 +85,8 @@ public class PurchaseService {
         PurchaseDto response = new PurchaseDto();
         response.setId(finalPurchase.getId());
         response.setCompanyId(company.getId());
-        response.setSupplierName(finalPurchase.getSupplierName());
+        response.setSupplierId(supplier.getId());
+        response.setSupplierName(supplier.getName());
         response.setInvoiceNumber(finalPurchase.getInvoiceNumber());
         response.setTotalAmount(finalPurchase.getTotalAmount());
 
@@ -107,6 +112,13 @@ public class PurchaseService {
             dto.setSupplierName(purchase.getSupplierName());
             dto.setInvoiceNumber(purchase.getInvoiceNumber());
             dto.setTotalAmount(purchase.getTotalAmount());
+
+            if (purchase.getSupplier() != null) {
+                dto.setSupplierId(purchase.getSupplier().getId());
+                dto.setSupplierName(purchase.getSupplier().getName());
+            } else {
+                dto.setSupplierName(purchase.getSupplierName());
+            }
 
             return dto;
 
@@ -148,6 +160,14 @@ public class PurchaseService {
         response.setTotalAmount(purchase.getTotalAmount());
         response.setItems(itemDtos);
 
+        if (purchase.getSupplier() != null) {
+            response.setSupplierId(purchase.getSupplier().getId());
+            response.setSupplierName(purchase.getSupplier().getName());
+        } else {
+            response.setSupplierName(purchase.getSupplierName());
+        }
+
+
         return response;
     }
 @Transactional
@@ -185,6 +205,12 @@ public class PurchaseService {
                         .multiply(BigDecimal.valueOf(item.getQuantity()));
 
                 item.setSubtotal(subtotal);
+
+                Supplier supplier = supplierRepository.findById(purchaseDto.getSupplierId())
+                        .orElseThrow(() -> new RuntimeException("Supplier not found"));
+
+                purchase.setSupplier(supplier);
+                purchase.setSupplierName(supplier.getName());
 
                 purchaseItemRepository.save(item);
             }

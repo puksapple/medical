@@ -21,4 +21,8 @@ public class PurchaseDto {
     private BigDecimal totalAmount;
 
     private List<PurchaseItemDto> items;
+
+    private Long supplierId;
+
+
 }
