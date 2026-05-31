@@ -84,13 +84,10 @@ public class MedicineService {
                 medicineStockRepository.getTotalStockByMedicineId(medicineId);
 
         if (totalStock != null && totalStock > 0) {
-            throw new RuntimeException(
-                    "Medicine has remaining stock. Please sell or adjust stock to 0 before deactivating."
-            );
+            return "Medicine cannot be deleted because it has remaining stock: " + totalStock;
         }
 
         medicine.setActive(false);
-
         medicineRepository.save(medicine);
 
         return "Medicine deactivated successfully";
