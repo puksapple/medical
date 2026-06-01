@@ -28,5 +28,9 @@ public class BillDto {
 
     private Long customerId;
 
+    private BigDecimal returnAmount;
+
+    private BigDecimal netAmount;
+
 
 }

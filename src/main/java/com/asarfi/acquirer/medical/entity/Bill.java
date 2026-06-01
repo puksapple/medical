@@ -42,4 +42,8 @@ public class Bill {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
     private Customer customer;
+
+    private BigDecimal returnAmount;
+
+    private BigDecimal netAmount;
 }

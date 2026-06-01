@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 027-add-return-fields-to-bills-table
+      author: asarfi
+      changes:
+        - addColumn:
+            tableName: bills
+            columns:
+              - column:
+                  name: return_amount
+                  type: DECIMAL(19,2)
+                  defaultValueNumeric: 0
+
+              - column:
+                  name: net_amount
+                  type: DECIMAL(19,2)

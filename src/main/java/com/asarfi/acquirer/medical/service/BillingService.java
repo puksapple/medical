@@ -116,17 +116,20 @@ public class BillingService {
 
             totalAmount = totalAmount.add(subtotal);
         }
-
         BigDecimal discount = billDto.getDiscount() != null
                 ? billDto.getDiscount()
                 : BigDecimal.ZERO;
 
+        BigDecimal netAmount = totalAmount.subtract(discount);
+
         savedBill.setDiscount(discount);
-        savedBill.setTotalAmount(totalAmount.subtract(discount));
+        savedBill.setTotalAmount(netAmount);
 
-
+        savedBill.setReturnAmount(BigDecimal.ZERO);
+        savedBill.setNetAmount(netAmount);
 
         Bill finalBill = billRepository.save(savedBill);
+
 
         BillDto response = new BillDto();
         response.setId(finalBill.getId());
@@ -136,6 +139,9 @@ public class BillingService {
         response.setPaymentMethod(finalBill.getPaymentMethod());
         response.setDiscount(finalBill.getDiscount());
         response.setTotalAmount(finalBill.getTotalAmount());
+
+        response.setReturnAmount(finalBill.getReturnAmount());
+        response.setNetAmount(finalBill.getNetAmount());
 
         if (finalBill.getCustomer() != null) {
             response.setCustomerId(finalBill.getCustomer().getId());
@@ -178,6 +184,9 @@ public class BillingService {
         response.setPaymentMethod(bill.getPaymentMethod());
         response.setDiscount(bill.getDiscount());
         response.setTotalAmount(bill.getTotalAmount());
+
+        response.setReturnAmount(bill.getReturnAmount());
+        response.setNetAmount(bill.getNetAmount());
         response.setItems(itemDtos);
 
         return response;
@@ -203,6 +212,9 @@ public class BillingService {
             dto.setPaymentMethod(bill.getPaymentMethod());
             dto.setDiscount(bill.getDiscount());
             dto.setTotalAmount(bill.getTotalAmount());
+
+            dto.setReturnAmount(bill.getReturnAmount());
+            dto.setNetAmount(bill.getNetAmount());
 
             return dto;
 

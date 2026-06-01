@@ -1,5 +1,6 @@
 package com.asarfi.acquirer.medical.entity;
 
+import com.asarfi.acquirer.medical.entity.enums.ReturnType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,7 +19,8 @@ public class MedicineReturn {
 
     private String returnNumber;
 
-    private String returnType; // CUSTOMER or SUPPLIER
+    @Enumerated(EnumType.STRING)
+    private ReturnType returnType; // CUSTOMER or SUPPLIER
 
     private String reason;
 

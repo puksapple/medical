@@ -70,3 +70,6 @@ databaseChangeLog:
 
   - include:
       file: db/changelog/changes/026-create-medicine-return-items-table.yaml
+
+  - include:
+      file: db/changelog/changes/027-add-return-fields-to-bills-table.yaml
