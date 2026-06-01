@@ -1,0 +1,62 @@
+databaseChangeLog:
+  - changeSet:
+      id: 026-create-medicine-return-items-table
+      author: asarfi
+      changes:
+
+        - createTable:
+            tableName: medicine_return_item
+            columns:
+
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: quantity
+                  type: INT
+
+              - column:
+                  name: price
+                  type: DECIMAL(19,2)
+
+              - column:
+                  name: subtotal
+                  type: DECIMAL(19,2)
+
+              - column:
+                  name: medicine_return_id
+                  type: BIGINT
+
+              - column:
+                  name: medicine_id
+                  type: BIGINT
+
+              - column:
+                  name: bill_item_id
+                  type: BIGINT
+
+        - addForeignKeyConstraint:
+            baseTableName: medicine_return_item
+            baseColumnNames: medicine_return_id
+            referencedTableName: medicine_return
+            referencedColumnNames: id
+            constraintName: fk_return_item_return
+
+        - addForeignKeyConstraint:
+            baseTableName: medicine_return_item
+            baseColumnNames: medicine_id
+            referencedTableName: medicine
+            referencedColumnNames: id
+            constraintName: fk_return_item_medicine
+
+        - addForeignKeyConstraint:
+            baseTableName: medicine_return_item
+            baseColumnNames: bill_item_id
+            referencedTableName: bill_item
+            referencedColumnNames: id
+            constraintName: fk_return_item_bill_item

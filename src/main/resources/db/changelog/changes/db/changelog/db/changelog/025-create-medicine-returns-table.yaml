@@ -1,0 +1,57 @@
+databaseChangeLog:
+  - changeSet:
+      id: 025-create-medicine-returns-table
+      author: asarfi
+      changes:
+        - createTable:
+            tableName: medicine_return
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: return_number
+                  type: VARCHAR(100)
+
+              - column:
+                  name: return_type
+                  type: VARCHAR(50)
+
+              - column:
+                  name: reason
+                  type: VARCHAR(255)
+
+              - column:
+                  name: total_amount
+                  type: DECIMAL(19,2)
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+
+              - column:
+                  name: company_id
+                  type: BIGINT
+
+              - column:
+                  name: bill_id
+                  type: BIGINT
+
+        - addForeignKeyConstraint:
+            baseTableName: medicine_return
+            baseColumnNames: company_id
+            referencedTableName: company
+            referencedColumnNames: id
+            constraintName: fk_medicine_return_company
+
+        - addForeignKeyConstraint:
+            baseTableName: medicine_return
+            baseColumnNames: bill_id
+            referencedTableName: bill
+            referencedColumnNames: id
+            constraintName: fk_medicine_return_bill
