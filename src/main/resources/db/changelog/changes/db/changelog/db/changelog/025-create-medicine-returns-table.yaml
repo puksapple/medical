@@ -2,10 +2,13 @@ databaseChangeLog:
   - changeSet:
       id: 025-create-medicine-returns-table
       author: asarfi
+
       changes:
+
         - createTable:
             tableName: medicine_return
             columns:
+
               - column:
                   name: id
                   type: BIGINT
@@ -45,13 +48,13 @@ databaseChangeLog:
         - addForeignKeyConstraint:
             baseTableName: medicine_return
             baseColumnNames: company_id
-            referencedTableName: company
+            referencedTableName: companies
             referencedColumnNames: id
             constraintName: fk_medicine_return_company
 
         - addForeignKeyConstraint:
             baseTableName: medicine_return
             baseColumnNames: bill_id
-            referencedTableName: bill
+            referencedTableName: bills
             referencedColumnNames: id
             constraintName: fk_medicine_return_bill

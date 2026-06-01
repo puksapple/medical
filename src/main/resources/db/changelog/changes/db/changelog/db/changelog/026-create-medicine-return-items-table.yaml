@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 026-create-medicine-return-items-table
       author: asarfi
+
       changes:
 
         - createTable:
@@ -50,13 +51,13 @@ databaseChangeLog:
         - addForeignKeyConstraint:
             baseTableName: medicine_return_item
             baseColumnNames: medicine_id
-            referencedTableName: medicine
+            referencedTableName: medicines
             referencedColumnNames: id
             constraintName: fk_return_item_medicine
 
         - addForeignKeyConstraint:
             baseTableName: medicine_return_item
             baseColumnNames: bill_item_id
-            referencedTableName: bill_item
+            referencedTableName: bill_items
             referencedColumnNames: id
             constraintName: fk_return_item_bill_item
