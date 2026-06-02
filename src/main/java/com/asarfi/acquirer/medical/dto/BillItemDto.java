@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 @Setter
 public class BillItemDto {
 
+    private Long id;
+
     private Long medicineId;
 
     private String medicineName;

@@ -30,6 +30,7 @@ public class ReportService {
     private final BillItemRepository billItemRepository;
 
     private final PurchaseItemRepository purchaseItemRepository;
+    private final MedicineReturnRepository medicineReturnRepository;
 
     public SalesReportDto getSalesReport(
             Long companyId,
@@ -48,9 +49,17 @@ public class ReportService {
                 toDateTime
         );
 
-        BigDecimal totalSales = bills.stream()
+        BigDecimal grossSales = bills.stream()
                 .map(Bill::getTotalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal salesReturnAmount = bills.stream()
+                .map(bill -> bill.getReturnAmount() != null
+                        ? bill.getReturnAmount()
+                        : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal netSales = grossSales.subtract(salesReturnAmount);
 
         List<BillDto> billDtos = bills.stream().map(bill -> {
 
@@ -63,13 +72,19 @@ public class ReportService {
             dto.setPaymentMethod(bill.getPaymentMethod());
             dto.setDiscount(bill.getDiscount());
             dto.setTotalAmount(bill.getTotalAmount());
+            dto.setReturnAmount(bill.getReturnAmount());
+            dto.setNetAmount(bill.getNetAmount());
 
             return dto;
 
         }).toList();
 
         SalesReportDto response = new SalesReportDto();
-        response.setTotalSales(totalSales);
+
+        response.setGrossSales(grossSales);
+        response.setSalesReturnAmount(salesReturnAmount);
+        response.setNetSales(netSales);
+
         response.setBills(billDtos);
 
         return response;
@@ -214,7 +229,8 @@ public class ReportService {
 
         List<BillItem> billItems = billItemRepository.findByBillIn(bills);
 
-        BigDecimal totalSales = BigDecimal.ZERO;
+        BigDecimal grossSales = BigDecimal.ZERO;
+        BigDecimal salesReturnAmount = BigDecimal.ZERO;
         BigDecimal totalCost = BigDecimal.ZERO;
 
         Map<Long, ProfitMedicineDto> medicineProfitMap = new HashMap<>();
@@ -240,7 +256,7 @@ public class ReportService {
 
             BigDecimal profitAmount = salesAmount.subtract(costAmount);
 
-            totalSales = totalSales.add(salesAmount);
+            grossSales = grossSales.add(salesAmount);
             totalCost = totalCost.add(costAmount);
 
             ProfitMedicineDto dto = medicineProfitMap.getOrDefault(
@@ -265,25 +281,82 @@ public class ReportService {
             medicineProfitMap.put(medicine.getId(), dto);
         }
 
-        BigDecimal grossProfit = totalSales.subtract(totalCost);
+        salesReturnAmount = bills.stream()
+                .map(bill -> bill.getReturnAmount() != null
+                        ? bill.getReturnAmount()
+                        : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        BigDecimal netSales = grossSales.subtract(salesReturnAmount);
+
+        BigDecimal grossProfit = netSales.subtract(totalCost);
         BigDecimal margin = BigDecimal.ZERO;
 
-        if (totalSales.compareTo(BigDecimal.ZERO) > 0) {
+        if (netSales.compareTo(BigDecimal.ZERO) > 0) {
             margin = grossProfit
                     .multiply(BigDecimal.valueOf(100))
-                    .divide(totalSales, 2, RoundingMode.HALF_UP);
+                    .divide(netSales, 2, RoundingMode.HALF_UP);
         }
 
         ProfitReportDto response = new ProfitReportDto();
 
-        response.setTotalSales(totalSales);
+        response.setGrossSales(grossSales);
+        response.setSalesReturnAmount(salesReturnAmount);
+        response.setNetSales(netSales);
         response.setTotalCost(totalCost);
         response.setGrossProfit(grossProfit);
         response.setProfitMarginPercentage(margin);
         response.setMedicines(
                 new ArrayList<>(medicineProfitMap.values())
         );
+
+        return response;
+    }
+
+
+    public SalesReturnReportDto getSalesReturnReport(
+            Long companyId,
+            LocalDate fromDate,
+            LocalDate toDate
+    ) {
+
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new RuntimeException("Company not found"));
+
+        LocalDateTime fromDateTime = fromDate.atStartOfDay();
+        LocalDateTime toDateTime = toDate.atTime(23, 59, 59);
+
+        List<MedicineReturn> returns =
+                medicineReturnRepository.findByCompanyAndCreatedAtBetween(
+                        company,
+                        fromDateTime,
+                        toDateTime
+                );
+
+        BigDecimal totalReturnAmount = returns.stream()
+                .map(MedicineReturn::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        List<MedicineReturnDto> returnDtos = returns.stream().map(returnRecord -> {
+
+            MedicineReturnDto dto = new MedicineReturnDto();
+
+            dto.setId(returnRecord.getId());
+            dto.setCompanyId(company.getId());
+            dto.setBillId(returnRecord.getBill().getId());
+            dto.setReturnNumber(returnRecord.getReturnNumber());
+            dto.setReturnType(returnRecord.getReturnType());
+            dto.setReason(returnRecord.getReason());
+            dto.setTotalAmount(returnRecord.getTotalAmount());
+
+            return dto;
+
+        }).toList();
+
+        SalesReturnReportDto response = new SalesReturnReportDto();
+        response.setTotalReturnAmount(totalReturnAmount);
+        response.setTotalReturns(returns.size());
+        response.setReturns(returnDtos);
 
         return response;
     }

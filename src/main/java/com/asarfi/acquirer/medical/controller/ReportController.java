@@ -69,4 +69,18 @@ public class ReportController {
                 toDate
         );
     }
+
+    @GetMapping("/sales-returns")
+    public SalesReturnReportDto getSalesReturnReport(
+            @RequestParam Long companyId,
+            @RequestParam LocalDate fromDate,
+            @RequestParam LocalDate toDate
+    ) {
+        return reportService.getSalesReturnReport(
+                companyId,
+                fromDate,
+                toDate
+        );
+    }
+
 }

@@ -10,7 +10,11 @@ import java.util.List;
 @Setter
 public class SalesReportDto {
 
-    private BigDecimal totalSales;
+    private BigDecimal grossSales;
+
+    private BigDecimal salesReturnAmount;
+
+    private BigDecimal netSales;
 
     private List<BillDto> bills;
 }

@@ -23,6 +23,7 @@ public class BillingService {
     private final MedicineRepository medicineRepository;
     private final MedicineStockRepository medicineStockRepository;
     private final CustomerRepository customerRepository;
+    private final BillItemStockRepository billItemStockRepository;
 
 
     @Transactional
@@ -44,6 +45,8 @@ public class BillingService {
         bill.setBillNumber("BILL-" + UUID.randomUUID().toString().substring(0, 8));
         bill.setCreatedAt(LocalDateTime.now());
         bill.setTotalAmount(BigDecimal.ZERO);
+        bill.setReturnAmount(BigDecimal.ZERO);
+        bill.setNetAmount(BigDecimal.ZERO);
 
         if (customer != null) {
             bill.setCustomer(customer);
@@ -63,6 +66,8 @@ public class BillingService {
 
             int requiredQuantity = itemDto.getQuantity();
 
+            // Fetch available stock batches for this medicine.
+            // These are ordered by expiry date, so older/nearer expiry stock is sold first.
             List<MedicineStock> stocks =
                     medicineStockRepository.findByCompanyAndMedicineOrderByExpiryDateAsc(
                             company,
@@ -73,9 +78,27 @@ public class BillingService {
                     .mapToInt(MedicineStock::getQuantity)
                     .sum();
 
+            // Validate stock before creating bill item or reducing stock.
             if (availableQuantity < requiredQuantity) {
                 throw new RuntimeException("Not enough stock for " + medicine.getName());
             }
+
+            BigDecimal price = medicine.getPrice();
+
+            BigDecimal subtotal = price.multiply(
+                    BigDecimal.valueOf(itemDto.getQuantity())
+            );
+
+            // Create bill item first.
+            // This is needed because BillItemStock must reference this saved bill item.
+            BillItem billItem = new BillItem();
+            billItem.setBill(savedBill);
+            billItem.setMedicine(medicine);
+            billItem.setQuantity(itemDto.getQuantity());
+            billItem.setPrice(price);
+            billItem.setSubtotal(subtotal);
+
+            BillItem savedBillItem = billItemRepository.save(billItem);
 
             int remainingQuantity = requiredQuantity;
 
@@ -85,37 +108,34 @@ public class BillingService {
                     break;
                 }
 
+                int quantityTaken;
+
                 if (stock.getQuantity() >= remainingQuantity) {
-
-                    stock.setQuantity(stock.getQuantity() - remainingQuantity);
-                    medicineStockRepository.save(stock);
-                    remainingQuantity = 0;
-
+                    quantityTaken = remainingQuantity;
                 } else {
-
-                    remainingQuantity = remainingQuantity - stock.getQuantity();
-                    stock.setQuantity(0);
-                    medicineStockRepository.save(stock);
+                    quantityTaken = stock.getQuantity();
                 }
+
+                // Reduce stock from this batch.
+                stock.setQuantity(stock.getQuantity() - quantityTaken);
+                medicineStockRepository.save(stock);
+
+                // Save which stock batch was used for this bill item.
+                // This is important for sales return so returned quantity goes back
+                // into the same batch instead of creating a duplicate stock row.
+                BillItemStock billItemStock = new BillItemStock();
+                billItemStock.setBillItem(savedBillItem);
+                billItemStock.setMedicineStock(stock);
+                billItemStock.setQuantityUsed(quantityTaken);
+
+                billItemStockRepository.save(billItemStock);
+
+                remainingQuantity = remainingQuantity - quantityTaken;
             }
-
-            BigDecimal price = medicine.getPrice();
-
-            BigDecimal subtotal = price.multiply(
-                    BigDecimal.valueOf(itemDto.getQuantity())
-            );
-
-            BillItem billItem = new BillItem();
-            billItem.setBill(savedBill);
-            billItem.setMedicine(medicine);
-            billItem.setQuantity(itemDto.getQuantity());
-            billItem.setPrice(price);
-            billItem.setSubtotal(subtotal);
-
-            billItemRepository.save(billItem);
 
             totalAmount = totalAmount.add(subtotal);
         }
+
         BigDecimal discount = billDto.getDiscount() != null
                 ? billDto.getDiscount()
                 : BigDecimal.ZERO;
@@ -124,12 +144,10 @@ public class BillingService {
 
         savedBill.setDiscount(discount);
         savedBill.setTotalAmount(netAmount);
-
         savedBill.setReturnAmount(BigDecimal.ZERO);
         savedBill.setNetAmount(netAmount);
 
         Bill finalBill = billRepository.save(savedBill);
-
 
         BillDto response = new BillDto();
         response.setId(finalBill.getId());
@@ -139,7 +157,6 @@ public class BillingService {
         response.setPaymentMethod(finalBill.getPaymentMethod());
         response.setDiscount(finalBill.getDiscount());
         response.setTotalAmount(finalBill.getTotalAmount());
-
         response.setReturnAmount(finalBill.getReturnAmount());
         response.setNetAmount(finalBill.getNetAmount());
 
@@ -164,6 +181,8 @@ public class BillingService {
         List<BillItemDto> itemDtos = billItems.stream().map(item -> {
 
             BillItemDto itemDto = new BillItemDto();
+
+            itemDto.setId(item.getId());
 
             itemDto.setMedicineId(item.getMedicine().getId());
             itemDto.setMedicineName(item.getMedicine().getName());

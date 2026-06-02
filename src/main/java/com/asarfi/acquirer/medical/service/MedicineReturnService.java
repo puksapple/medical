@@ -24,6 +24,7 @@ public class MedicineReturnService {
     private final BillRepository billRepository;
     private final BillItemRepository billItemRepository;
     private final MedicineStockRepository medicineStockRepository;
+    private final BillItemStockRepository billItemStockRepository;
 
     @Transactional
     public MedicineReturnDto createReturn(MedicineReturnDto dto) {
@@ -46,6 +47,9 @@ public class MedicineReturnService {
         MedicineReturn savedReturn = medicineReturnRepository.save(medicineReturn);
 
         BigDecimal totalReturnAmount = BigDecimal.ZERO;
+        List<MedicineReturnItemDto> returnedItemDtos = new java.util.ArrayList<>();
+
+
 
         for (MedicineReturnItemDto itemDto : dto.getItems()) {
 
@@ -82,13 +86,41 @@ public class MedicineReturnService {
 
             medicineReturnItemRepository.save(returnItem);
 
-            MedicineStock stock = new MedicineStock();
-            stock.setCompany(company);
-            stock.setMedicine(billItem.getMedicine());
-            stock.setQuantity(itemDto.getQuantity());
-            stock.setCreatedAt(LocalDateTime.now());
 
-            medicineStockRepository.save(stock);
+            MedicineReturnItemDto returnedItemDto = new MedicineReturnItemDto();
+            returnedItemDto.setBillItemId(billItem.getId());
+            returnedItemDto.setMedicineId(billItem.getMedicine().getId());
+            returnedItemDto.setMedicineName(billItem.getMedicine().getName());
+            returnedItemDto.setQuantity(returnItem.getQuantity());
+            returnedItemDto.setPrice(returnItem.getPrice());
+            returnedItemDto.setSubtotal(returnItem.getSubtotal());
+
+            returnedItemDtos.add(returnedItemDto);
+
+            List<BillItemStock> billItemStocks =
+                    billItemStockRepository.findByBillItem(billItem);
+
+            int quantityToRestore = itemDto.getQuantity();
+
+            for (BillItemStock billItemStock : billItemStocks) {
+
+                if (quantityToRestore <= 0) {
+                    break;
+                }
+
+                int restoreQuantity = Math.min(
+                        quantityToRestore,
+                        billItemStock.getQuantityUsed()
+                );
+
+                MedicineStock stock = billItemStock.getMedicineStock();
+
+                stock.setQuantity(stock.getQuantity() + restoreQuantity);
+
+                medicineStockRepository.save(stock);
+
+                quantityToRestore = quantityToRestore - restoreQuantity;
+            }
 
             totalReturnAmount = totalReturnAmount.add(subtotal);
         }
@@ -121,6 +153,7 @@ public class MedicineReturnService {
         response.setReturnType(finalReturn.getReturnType());
         response.setReason(finalReturn.getReason());
         response.setTotalAmount(finalReturn.getTotalAmount());
+        response.setItems(returnedItemDtos);
 
         return response;
     }
