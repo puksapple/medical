@@ -3,6 +3,7 @@ package com.asarfi.acquirer.medical.service;
 import com.asarfi.acquirer.medical.dto.BillDto;
 import com.asarfi.acquirer.medical.dto.BillItemDto;
 import com.asarfi.acquirer.medical.entity.*;
+import com.asarfi.acquirer.medical.entity.enums.MedicineUnit;
 import com.asarfi.acquirer.medical.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -64,10 +65,35 @@ public class BillingService {
             Medicine medicine = medicineRepository.findById(itemDto.getMedicineId())
                     .orElseThrow(() -> new RuntimeException("Medicine not found"));
 
-            int requiredQuantity = itemDto.getQuantity();
+            Integer enteredQuantity = itemDto.getQuantity();
 
-            // Fetch available stock batches for this medicine.
-            // These are ordered by expiry date, so older/nearer expiry stock is sold first.
+            if (enteredQuantity == null || enteredQuantity <= 0) {
+                throw new RuntimeException("Sale quantity must be greater than zero");
+            }
+
+            MedicineUnit saleUnit = itemDto.getSaleUnit() != null
+                    ? itemDto.getSaleUnit()
+                    : medicine.getBaseUnit();
+
+            if (saleUnit == null) {
+                throw new RuntimeException("Sale unit is required");
+            }
+
+            int unitsPerPack = medicine.getUnitsPerPack() != null
+                    && medicine.getUnitsPerPack() > 0
+                    ? medicine.getUnitsPerPack()
+                    : 1;
+
+            int stockQuantity;
+
+            if (saleUnit == medicine.getPackUnit()) {
+                stockQuantity = enteredQuantity * unitsPerPack;
+            } else if (saleUnit == medicine.getBaseUnit()) {
+                stockQuantity = enteredQuantity;
+            } else {
+                throw new RuntimeException("Invalid sale unit for medicine " + medicine.getName());
+            }
+
             List<MedicineStock> stocks =
                     medicineStockRepository.findByCompanyAndMedicineOrderByExpiryDateAsc(
                             company,
@@ -78,29 +104,30 @@ public class BillingService {
                     .mapToInt(MedicineStock::getQuantity)
                     .sum();
 
-            // Validate stock before creating bill item or reducing stock.
-            if (availableQuantity < requiredQuantity) {
+            if (availableQuantity < stockQuantity) {
                 throw new RuntimeException("Not enough stock for " + medicine.getName());
             }
 
             BigDecimal price = medicine.getPrice();
 
             BigDecimal subtotal = price.multiply(
-                    BigDecimal.valueOf(itemDto.getQuantity())
+                    BigDecimal.valueOf(stockQuantity)
             );
 
-            // Create bill item first.
-            // This is needed because BillItemStock must reference this saved bill item.
             BillItem billItem = new BillItem();
             billItem.setBill(savedBill);
             billItem.setMedicine(medicine);
-            billItem.setQuantity(itemDto.getQuantity());
+
+            billItem.setQuantity(enteredQuantity);
+            billItem.setSaleUnit(saleUnit);
+            billItem.setStockQuantity(stockQuantity);
+
             billItem.setPrice(price);
             billItem.setSubtotal(subtotal);
 
             BillItem savedBillItem = billItemRepository.save(billItem);
 
-            int remainingQuantity = requiredQuantity;
+            int remainingQuantity = stockQuantity;
 
             for (MedicineStock stock : stocks) {
 
@@ -116,13 +143,9 @@ public class BillingService {
                     quantityTaken = stock.getQuantity();
                 }
 
-                // Reduce stock from this batch.
                 stock.setQuantity(stock.getQuantity() - quantityTaken);
                 medicineStockRepository.save(stock);
 
-                // Save which stock batch was used for this bill item.
-                // This is important for sales return so returned quantity goes back
-                // into the same batch instead of creating a duplicate stock row.
                 BillItemStock billItemStock = new BillItemStock();
                 billItemStock.setBillItem(savedBillItem);
                 billItemStock.setMedicineStock(stock);
@@ -189,6 +212,8 @@ public class BillingService {
             itemDto.setQuantity(item.getQuantity());
             itemDto.setPrice(item.getPrice());
             itemDto.setSubtotal(item.getSubtotal());
+            itemDto.setSaleUnit(item.getSaleUnit());
+            itemDto.setStockQuantity(item.getStockQuantity());
 
             return itemDto;
 

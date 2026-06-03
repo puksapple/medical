@@ -1,5 +1,6 @@
 package com.asarfi.acquirer.medical.entity;
 
+import com.asarfi.acquirer.medical.entity.enums.MedicineUnit;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,6 +28,13 @@ public class PurchaseItem {
 
     @Column(nullable = false)
     private Integer quantity;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "purchase_unit", length = 50)
+    private MedicineUnit purchaseUnit;
+
+    @Column(name = "stock_quantity", nullable = false)
+    private Integer stockQuantity;
 
     @Column(name = "purchase_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal purchasePrice;

@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 032-add-unit-fields-to-medicine-return-items-table
+      author: puks
+
+      changes:
+        - addColumn:
+            tableName: medicine_return_item
+            columns:
+              - column:
+                  name: return_unit
+                  type: VARCHAR(50)
+
+              - column:
+                  name: stock_quantity
+                  type: INT

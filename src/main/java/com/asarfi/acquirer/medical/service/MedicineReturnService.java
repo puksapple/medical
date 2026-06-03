@@ -3,6 +3,7 @@ package com.asarfi.acquirer.medical.service;
 import com.asarfi.acquirer.medical.dto.MedicineReturnDto;
 import com.asarfi.acquirer.medical.dto.MedicineReturnItemDto;
 import com.asarfi.acquirer.medical.entity.*;
+import com.asarfi.acquirer.medical.entity.enums.MedicineUnit;
 import com.asarfi.acquirer.medical.entity.enums.ReturnType;
 import com.asarfi.acquirer.medical.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -49,22 +50,55 @@ public class MedicineReturnService {
         BigDecimal totalReturnAmount = BigDecimal.ZERO;
         List<MedicineReturnItemDto> returnedItemDtos = new java.util.ArrayList<>();
 
-
-
         for (MedicineReturnItemDto itemDto : dto.getItems()) {
 
             BillItem billItem = billItemRepository.findById(itemDto.getBillItemId())
                     .orElseThrow(() -> new RuntimeException("Bill item not found"));
 
-            Integer alreadyReturned =
+            Medicine medicine = billItem.getMedicine();
+
+            Integer enteredQuantity = itemDto.getQuantity();
+
+            if (enteredQuantity == null || enteredQuantity <= 0) {
+                throw new RuntimeException("Return quantity must be greater than zero");
+            }
+
+            MedicineUnit returnUnit = itemDto.getReturnUnit() != null
+                    ? itemDto.getReturnUnit()
+                    : medicine.getBaseUnit();
+
+            if (returnUnit == null) {
+                throw new RuntimeException("Return unit is required");
+            }
+
+            int unitsPerPack = medicine.getUnitsPerPack() != null
+                    && medicine.getUnitsPerPack() > 0
+                    ? medicine.getUnitsPerPack()
+                    : 1;
+
+            int returnStockQuantity;
+
+            if (returnUnit == medicine.getPackUnit()) {
+                returnStockQuantity = enteredQuantity * unitsPerPack;
+            } else if (returnUnit == medicine.getBaseUnit()) {
+                returnStockQuantity = enteredQuantity;
+            } else {
+                throw new RuntimeException("Invalid return unit for medicine " + medicine.getName());
+            }
+
+            Integer alreadyReturnedStockQuantity =
                     medicineReturnItemRepository.getTotalReturnedQuantityByBillItemId(
                             billItem.getId()
                     );
 
-            int remainingReturnableQuantity =
-                    billItem.getQuantity() - alreadyReturned;
+            int soldStockQuantity = billItem.getStockQuantity() != null
+                    ? billItem.getStockQuantity()
+                    : billItem.getQuantity();
 
-            if (itemDto.getQuantity() > remainingReturnableQuantity) {
+            int remainingReturnableQuantity =
+                    soldStockQuantity - alreadyReturnedStockQuantity;
+
+            if (returnStockQuantity > remainingReturnableQuantity) {
                 throw new RuntimeException(
                         "Return quantity cannot be greater than remaining returnable quantity"
                 );
@@ -73,25 +107,28 @@ public class MedicineReturnService {
             BigDecimal price = billItem.getPrice();
 
             BigDecimal subtotal = price.multiply(
-                    BigDecimal.valueOf(itemDto.getQuantity())
+                    BigDecimal.valueOf(returnStockQuantity)
             );
 
             MedicineReturnItem returnItem = new MedicineReturnItem();
             returnItem.setMedicineReturn(savedReturn);
             returnItem.setBillItem(billItem);
-            returnItem.setMedicine(billItem.getMedicine());
-            returnItem.setQuantity(itemDto.getQuantity());
+            returnItem.setMedicine(medicine);
+            returnItem.setQuantity(enteredQuantity);
+            returnItem.setReturnUnit(returnUnit);
+            returnItem.setStockQuantity(returnStockQuantity);
             returnItem.setPrice(price);
             returnItem.setSubtotal(subtotal);
 
             medicineReturnItemRepository.save(returnItem);
 
-
             MedicineReturnItemDto returnedItemDto = new MedicineReturnItemDto();
             returnedItemDto.setBillItemId(billItem.getId());
-            returnedItemDto.setMedicineId(billItem.getMedicine().getId());
-            returnedItemDto.setMedicineName(billItem.getMedicine().getName());
+            returnedItemDto.setMedicineId(medicine.getId());
+            returnedItemDto.setMedicineName(medicine.getName());
             returnedItemDto.setQuantity(returnItem.getQuantity());
+            returnedItemDto.setReturnUnit(returnItem.getReturnUnit());
+            returnedItemDto.setStockQuantity(returnItem.getStockQuantity());
             returnedItemDto.setPrice(returnItem.getPrice());
             returnedItemDto.setSubtotal(returnItem.getSubtotal());
 
@@ -100,7 +137,7 @@ public class MedicineReturnService {
             List<BillItemStock> billItemStocks =
                     billItemStockRepository.findByBillItem(billItem);
 
-            int quantityToRestore = itemDto.getQuantity();
+            int quantityToRestore = returnStockQuantity;
 
             for (BillItemStock billItemStock : billItemStocks) {
 
@@ -128,6 +165,7 @@ public class MedicineReturnService {
         savedReturn.setTotalAmount(totalReturnAmount);
 
         MedicineReturn finalReturn = medicineReturnRepository.save(savedReturn);
+
         BigDecimal currentReturnAmount = bill.getReturnAmount() != null
                 ? bill.getReturnAmount()
                 : BigDecimal.ZERO;
@@ -143,7 +181,6 @@ public class MedicineReturnService {
         );
 
         billRepository.save(bill);
-
 
         MedicineReturnDto response = new MedicineReturnDto();
         response.setId(finalReturn.getId());

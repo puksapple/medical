@@ -16,7 +16,7 @@ public interface MedicineReturnItemRepository
     );
 
     @Query("""
-    SELECT COALESCE(SUM(mri.quantity), 0)
+    SELECT COALESCE(SUM(COALESCE(mri.stockQuantity, mri.quantity)), 0)
     FROM MedicineReturnItem mri
     WHERE mri.billItem.id = :billItemId
 """)

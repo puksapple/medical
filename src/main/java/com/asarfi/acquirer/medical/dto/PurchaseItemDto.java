@@ -1,5 +1,6 @@
 package com.asarfi.acquirer.medical.dto;
 
+import com.asarfi.acquirer.medical.entity.enums.MedicineUnit;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,4 +24,5 @@ public class PurchaseItemDto {
     private String batchNo;
 
     private LocalDate expiryDate;
+
 }

@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 031-add-unit-fields-to-bill-items-table
+      author: puks
+
+      changes:
+        - addColumn:
+            tableName: bill_items
+            columns:
+              - column:
+                  name: sale_unit
+                  type: VARCHAR(50)
+
+              - column:
+                  name: stock_quantity
+                  type: INT

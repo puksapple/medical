@@ -1,5 +1,6 @@
 package com.asarfi.acquirer.medical.dto;
 
+import com.asarfi.acquirer.medical.entity.enums.MedicineUnit;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,4 +21,8 @@ public class MedicineReturnItemDto {
     private BigDecimal price;
 
     private BigDecimal subtotal;
+
+    private MedicineUnit returnUnit;
+
+    private Integer stockQuantity;
 }

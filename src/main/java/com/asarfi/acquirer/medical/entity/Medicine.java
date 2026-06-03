@@ -1,5 +1,6 @@
 package com.asarfi.acquirer.medical.entity;
 
+import com.asarfi.acquirer.medical.entity.enums.MedicineUnit;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,6 +29,17 @@ public class Medicine {
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "base_unit", length = 50)
+    private MedicineUnit baseUnit;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pack_unit", length = 50)
+    private MedicineUnit packUnit;
+
+    @Column(name = "units_per_pack")
+    private Integer unitsPerPack;
 
     @Column(nullable = false)
     private Boolean active = true;

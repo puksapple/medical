@@ -1,5 +1,6 @@
 package com.asarfi.acquirer.medical.entity;
 
+import com.asarfi.acquirer.medical.entity.enums.MedicineUnit;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +10,7 @@ import java.math.BigDecimal;
 @Entity
 @Getter
 @Setter
+
 public class MedicineReturnItem {
 
     @Id
@@ -32,4 +34,11 @@ public class MedicineReturnItem {
     @ManyToOne
     @JoinColumn(name = "bill_item_id")
     private BillItem billItem;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "return_unit", length = 50)
+    private MedicineUnit returnUnit;
+
+    @Column(name = "stock_quantity")
+    private Integer stockQuantity;
 }

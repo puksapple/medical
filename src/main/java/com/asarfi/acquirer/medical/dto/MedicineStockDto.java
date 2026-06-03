@@ -26,4 +26,12 @@ public class MedicineStockDto {
     private Long purchaseId;
 
     private String supplierName;
+
+    private String baseUnit;
+
+    private String packUnit;
+
+    private Integer unitsPerPack;
+
+    private String displayQuantity;
 }

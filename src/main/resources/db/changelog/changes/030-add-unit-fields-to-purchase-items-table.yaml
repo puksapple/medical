@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 030-add-unit-fields-to-purchase-items-table
+      author: puks
+
+      changes:
+        - addColumn:
+            tableName: purchase_items
+            columns:
+              - column:
+                  name: purchase_unit
+                  type: VARCHAR(50)
+
+              - column:
+                  name: stock_quantity
+                  type: INT

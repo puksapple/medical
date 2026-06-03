@@ -115,6 +115,29 @@ public class MedicineStockService {
         dto.setBatchNo(stock.getBatchNo());
         dto.setExpiryDate(stock.getExpiryDate());
 
+        Medicine medicine = stock.getMedicine();
+
+        dto.setBaseUnit(
+                medicine.getBaseUnit() != null
+                        ? medicine.getBaseUnit().name()
+                        : null
+        );
+
+        dto.setPackUnit(
+                medicine.getPackUnit() != null
+                        ? medicine.getPackUnit().name()
+                        : null
+        );
+
+        dto.setUnitsPerPack(medicine.getUnitsPerPack());
+
+        dto.setDisplayQuantity(
+                formatDisplayQuantity(
+                        stock.getQuantity(),
+                        medicine
+                )
+        );
+
         dto.setPurchaseId(
                 stock.getPurchase() != null
                         ? stock.getPurchase().getId()
@@ -128,5 +151,39 @@ public class MedicineStockService {
         );
 
         return dto;
+    }
+
+    private String formatDisplayQuantity(Integer quantity, Medicine medicine) {
+
+        if (quantity == null) {
+            return "0";
+        }
+
+        if (medicine.getBaseUnit() == null) {
+            return quantity.toString();
+        }
+
+        if (medicine.getPackUnit() == null
+                || medicine.getUnitsPerPack() == null
+                || medicine.getUnitsPerPack() <= 1
+                || medicine.getPackUnit() == medicine.getBaseUnit()) {
+
+            return quantity + " " + medicine.getBaseUnit().name();
+        }
+
+        int fullPacks = quantity / medicine.getUnitsPerPack();
+        int remainingBaseUnits = quantity % medicine.getUnitsPerPack();
+
+        if (remainingBaseUnits == 0) {
+            return fullPacks + " " + medicine.getPackUnit().name();
+        }
+
+        if (fullPacks == 0) {
+            return remainingBaseUnits + " " + medicine.getBaseUnit().name();
+        }
+
+        return fullPacks + " " + medicine.getPackUnit().name()
+                + " + "
+                + remainingBaseUnits + " " + medicine.getBaseUnit().name();
     }
 }

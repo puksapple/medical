@@ -3,6 +3,7 @@ package com.asarfi.acquirer.medical.service;
 import com.asarfi.acquirer.medical.dto.PurchaseDto;
 import com.asarfi.acquirer.medical.dto.PurchaseItemDto;
 import com.asarfi.acquirer.medical.entity.*;
+import com.asarfi.acquirer.medical.entity.enums.MedicineUnit;
 import com.asarfi.acquirer.medical.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -50,13 +51,34 @@ public class PurchaseService {
             Medicine medicine = medicineRepository.findById(itemDto.getMedicineId())
                     .orElseThrow(() -> new RuntimeException("Medicine not found"));
 
+            Integer enteredQuantity = itemDto.getQuantity();
+
+            if (enteredQuantity == null || enteredQuantity <= 0) {
+                throw new RuntimeException("Purchase quantity must be greater than zero");
+            }
+
+            MedicineUnit purchaseUnit = medicine.getPackUnit();
+
+            if (purchaseUnit == null) {
+                throw new RuntimeException("Medicine purchase unit is not configured");
+            }
+
+            int unitsPerPack = medicine.getUnitsPerPack() != null
+                    && medicine.getUnitsPerPack() > 0
+                    ? medicine.getUnitsPerPack()
+                    : 1;
+
+            int stockQuantity = enteredQuantity * unitsPerPack;
+
             BigDecimal subtotal = itemDto.getPurchasePrice()
-                    .multiply(BigDecimal.valueOf(itemDto.getQuantity()));
+                    .multiply(BigDecimal.valueOf(enteredQuantity));
 
             PurchaseItem purchaseItem = new PurchaseItem();
             purchaseItem.setPurchase(savedPurchase);
             purchaseItem.setMedicine(medicine);
-            purchaseItem.setQuantity(itemDto.getQuantity());
+            purchaseItem.setQuantity(enteredQuantity);
+            purchaseItem.setPurchaseUnit(purchaseUnit);
+            purchaseItem.setStockQuantity(stockQuantity);
             purchaseItem.setPurchasePrice(itemDto.getPurchasePrice());
             purchaseItem.setSubtotal(subtotal);
             purchaseItem.setBatchNo(itemDto.getBatchNo());
@@ -68,7 +90,7 @@ public class PurchaseService {
             stock.setCompany(company);
             stock.setMedicine(medicine);
             stock.setPurchase(savedPurchase);
-            stock.setQuantity(itemDto.getQuantity());
+            stock.setQuantity(stockQuantity);
             stock.setBatchNo(itemDto.getBatchNo());
             stock.setExpiryDate(itemDto.getExpiryDate());
             stock.setCreatedAt(LocalDateTime.now());

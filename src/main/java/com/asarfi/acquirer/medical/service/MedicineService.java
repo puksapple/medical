@@ -31,7 +31,13 @@ public class MedicineService {
         medicine.setCompany(company);
         medicine.setName(medicineDto.getName());
         medicine.setGenericName(medicineDto.getGenericName());
+
         medicine.setPrice(medicineDto.getPrice());
+
+        medicine.setBaseUnit(medicineDto.getBaseUnit());
+        medicine.setPackUnit(medicineDto.getPackUnit());
+        medicine.setUnitsPerPack(medicineDto.getUnitsPerPack());
+
         medicine.setActive(true);
 
         Medicine savedMedicine = medicineRepository.save(medicine);
@@ -70,6 +76,10 @@ public class MedicineService {
         medicine.setGenericName(medicineDto.getGenericName());
         medicine.setPrice(medicineDto.getPrice());
 
+        medicine.setBaseUnit(medicineDto.getBaseUnit());
+        medicine.setPackUnit(medicineDto.getPackUnit());
+        medicine.setUnitsPerPack(medicineDto.getUnitsPerPack());
+
         Medicine updatedMedicine = medicineRepository.save(medicine);
 
         return mapToDto(updatedMedicine);
@@ -103,6 +113,10 @@ public class MedicineService {
         dto.setName(medicine.getName());
         dto.setGenericName(medicine.getGenericName());
         dto.setPrice(medicine.getPrice());
+        dto.setBaseUnit(medicine.getBaseUnit());
+        dto.setPackUnit(medicine.getPackUnit());
+        dto.setUnitsPerPack(medicine.getUnitsPerPack());
+
         dto.setActive(medicine.getActive());
         Integer stockQuantity =
                 medicineStockRepository.getTotalStockByMedicineId(medicine.getId());

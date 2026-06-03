@@ -76,3 +76,15 @@ databaseChangeLog:
 
   - include:
       file: db/changelog/changes/028-create-bill-item-stocks-table.yaml
+
+  - include:
+      file: db/changelog/changes/029-add-unit-fields-to-medicines-table.yaml
+
+  - include:
+      file: db/changelog/changes/030-add-unit-fields-to-purchase-items-table.yaml
+
+  - include:
+      file: db/changelog/changes/031-add-unit-fields-to-bill-items-table.yaml
+
+  - include:
+      file: db/changelog/changes/032-add-unit-fields-to-medicine-return-items-table.yaml
