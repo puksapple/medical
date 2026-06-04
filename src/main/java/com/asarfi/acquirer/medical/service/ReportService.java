@@ -31,6 +31,7 @@ public class ReportService {
 
     private final PurchaseItemRepository purchaseItemRepository;
     private final MedicineReturnRepository medicineReturnRepository;
+    private final MedicineReturnItemRepository medicineReturnItemRepository;
 
     public SalesReportDto getSalesReport(
             Long companyId,
@@ -239,19 +240,16 @@ public class ReportService {
 
             Medicine medicine = billItem.getMedicine();
 
-            Integer quantitySold = billItem.getQuantity();
+            int soldStockQuantity = billItem.getStockQuantity() != null
+                    ? billItem.getStockQuantity()
+                    : billItem.getQuantity();
 
             BigDecimal salesAmount = billItem.getSubtotal();
 
-            List<PurchaseItem> purchaseItems =
-                    purchaseItemRepository.findByMedicine(medicine);
+            BigDecimal costPerBaseUnit = getCostPerBaseUnit(medicine);
 
-            BigDecimal purchasePrice = purchaseItems.isEmpty()
-                    ? BigDecimal.ZERO
-                    : purchaseItems.get(0).getPurchasePrice();
-
-            BigDecimal costAmount = purchasePrice.multiply(
-                    BigDecimal.valueOf(quantitySold)
+            BigDecimal costAmount = costPerBaseUnit.multiply(
+                    BigDecimal.valueOf(soldStockQuantity)
             );
 
             BigDecimal profitAmount = salesAmount.subtract(costAmount);
@@ -273,7 +271,7 @@ public class ReportService {
                 dto.setProfitAmount(BigDecimal.ZERO);
             }
 
-            dto.setQuantitySold(dto.getQuantitySold() + quantitySold);
+            dto.setQuantitySold(dto.getQuantitySold() + soldStockQuantity);
             dto.setSalesAmount(dto.getSalesAmount().add(salesAmount));
             dto.setCostAmount(dto.getCostAmount().add(costAmount));
             dto.setProfitAmount(dto.getProfitAmount().add(profitAmount));
@@ -287,9 +285,53 @@ public class ReportService {
                         : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal netSales = grossSales.subtract(salesReturnAmount);
+        BigDecimal returnedCost = BigDecimal.ZERO;
 
-        BigDecimal grossProfit = netSales.subtract(totalCost);
+        List<MedicineReturn> returns =
+                medicineReturnRepository.findByCompanyAndCreatedAtBetween(
+                        company,
+                        fromDateTime,
+                        toDateTime
+                );
+
+        for (MedicineReturn returnRecord : returns) {
+
+            List<MedicineReturnItem> returnItems =
+                    medicineReturnItemRepository.findByMedicineReturn(returnRecord);
+
+            for (MedicineReturnItem returnItem : returnItems) {
+
+                Medicine medicine = returnItem.getMedicine();
+
+                int returnedStockQuantity =
+                        returnItem.getStockQuantity() != null
+                                ? returnItem.getStockQuantity()
+                                : returnItem.getQuantity();
+
+                BigDecimal returnCostAmount =
+                        getCostPerBaseUnit(medicine).multiply(
+                                BigDecimal.valueOf(returnedStockQuantity)
+                        );
+
+                returnedCost = returnedCost.add(returnCostAmount);
+
+                ProfitMedicineDto dto = medicineProfitMap.get(medicine.getId());
+
+                if (dto != null) {
+                    dto.setQuantitySold(dto.getQuantitySold() - returnedStockQuantity);
+                    dto.setSalesAmount(dto.getSalesAmount().subtract(returnItem.getSubtotal()));
+                    dto.setCostAmount(dto.getCostAmount().subtract(returnCostAmount));
+                    dto.setProfitAmount(
+                            dto.getSalesAmount().subtract(dto.getCostAmount())
+                    );
+                }
+            }
+        }
+
+        BigDecimal netSales = grossSales.subtract(salesReturnAmount);
+        BigDecimal netCost = totalCost.subtract(returnedCost);
+        BigDecimal grossProfit = netSales.subtract(netCost);
+
         BigDecimal margin = BigDecimal.ZERO;
 
         if (netSales.compareTo(BigDecimal.ZERO) > 0) {
@@ -303,7 +345,7 @@ public class ReportService {
         response.setGrossSales(grossSales);
         response.setSalesReturnAmount(salesReturnAmount);
         response.setNetSales(netSales);
-        response.setTotalCost(totalCost);
+        response.setTotalCost(netCost);
         response.setGrossProfit(grossProfit);
         response.setProfitMarginPercentage(margin);
         response.setMedicines(
@@ -360,7 +402,28 @@ public class ReportService {
 
         return response;
     }
+    private BigDecimal getCostPerBaseUnit(Medicine medicine) {
 
+        List<PurchaseItem> purchaseItems =
+                purchaseItemRepository.findByMedicine(medicine);
+
+        if (purchaseItems.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal purchasePrice = purchaseItems.get(0).getPurchasePrice();
+
+        int unitsPerPack = medicine.getUnitsPerPack() != null
+                && medicine.getUnitsPerPack() > 0
+                ? medicine.getUnitsPerPack()
+                : 1;
+
+        return purchasePrice.divide(
+                BigDecimal.valueOf(unitsPerPack),
+                4,
+                RoundingMode.HALF_UP
+        );
+    }
 
 
 }

@@ -18,7 +18,8 @@ public class MedicineDto {
 
     private String genericName;
 
-    private BigDecimal price;
+    private BigDecimal individualUnitPrice;
+    private BigDecimal packUnitPrice;
 
     private Boolean active;
 

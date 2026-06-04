@@ -94,6 +94,20 @@ public class BillingService {
                 throw new RuntimeException("Invalid sale unit for medicine " + medicine.getName());
             }
 
+            BigDecimal price;
+
+            if (saleUnit == medicine.getPackUnit()) {
+                price = medicine.getPackUnitPrice();
+            } else if (saleUnit == medicine.getBaseUnit()) {
+                price = medicine.getIndividualUnitPrice();
+            } else {
+                throw new RuntimeException("Invalid sale unit for medicine " + medicine.getName());
+            }
+
+            if (price == null) {
+                throw new RuntimeException("Selling price is not configured for " + saleUnit);
+            }
+
             List<MedicineStock> stocks =
                     medicineStockRepository.findByCompanyAndMedicineOrderByExpiryDateAsc(
                             company,
@@ -108,10 +122,8 @@ public class BillingService {
                 throw new RuntimeException("Not enough stock for " + medicine.getName());
             }
 
-            BigDecimal price = medicine.getPrice();
-
             BigDecimal subtotal = price.multiply(
-                    BigDecimal.valueOf(stockQuantity)
+                    BigDecimal.valueOf(enteredQuantity)
             );
 
             BillItem billItem = new BillItem();

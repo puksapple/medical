@@ -32,7 +32,8 @@ public class MedicineService {
         medicine.setName(medicineDto.getName());
         medicine.setGenericName(medicineDto.getGenericName());
 
-        medicine.setPrice(medicineDto.getPrice());
+        medicine.setIndividualUnitPrice(medicineDto.getIndividualUnitPrice());
+        medicine.setPackUnitPrice(medicineDto.getPackUnitPrice());
 
         medicine.setBaseUnit(medicineDto.getBaseUnit());
         medicine.setPackUnit(medicineDto.getPackUnit());
@@ -74,7 +75,9 @@ public class MedicineService {
 
         medicine.setName(medicineDto.getName());
         medicine.setGenericName(medicineDto.getGenericName());
-        medicine.setPrice(medicineDto.getPrice());
+
+        medicine.setIndividualUnitPrice(medicineDto.getIndividualUnitPrice());
+        medicine.setPackUnitPrice(medicineDto.getPackUnitPrice());
 
         medicine.setBaseUnit(medicineDto.getBaseUnit());
         medicine.setPackUnit(medicineDto.getPackUnit());
@@ -112,7 +115,8 @@ public class MedicineService {
         dto.setCompanyId(medicine.getCompany().getId());
         dto.setName(medicine.getName());
         dto.setGenericName(medicine.getGenericName());
-        dto.setPrice(medicine.getPrice());
+        dto.setIndividualUnitPrice(medicine.getIndividualUnitPrice());
+        dto.setPackUnitPrice(medicine.getPackUnitPrice());
         dto.setBaseUnit(medicine.getBaseUnit());
         dto.setPackUnit(medicine.getPackUnit());
         dto.setUnitsPerPack(medicine.getUnitsPerPack());

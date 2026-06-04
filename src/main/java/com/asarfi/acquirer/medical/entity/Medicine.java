@@ -27,8 +27,11 @@ public class Medicine {
     @Column(name = "generic_name", length = 255)
     private String genericName;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
+    @Column(name = "individual_unit_price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal individualUnitPrice;
+
+    @Column(name = "pack_unit_price", precision = 10, scale = 2)
+    private BigDecimal packUnitPrice;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "base_unit", length = 50)

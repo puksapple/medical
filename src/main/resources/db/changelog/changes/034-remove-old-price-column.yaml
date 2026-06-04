@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 034-remove-old-price-column
+      author: puks
+
+      changes:
+        - dropColumn:
+            tableName: medicines
+            columnName: price

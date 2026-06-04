@@ -104,10 +104,22 @@ public class MedicineReturnService {
                 );
             }
 
-            BigDecimal price = billItem.getPrice();
+            BigDecimal price;
+
+            if (returnUnit == medicine.getPackUnit()) {
+                price = medicine.getPackUnitPrice();
+            } else if (returnUnit == medicine.getBaseUnit()) {
+                price = medicine.getIndividualUnitPrice();
+            } else {
+                throw new RuntimeException("Invalid return unit for medicine " + medicine.getName());
+            }
+
+            if (price == null) {
+                throw new RuntimeException("Return price is not configured for " + returnUnit);
+            }
 
             BigDecimal subtotal = price.multiply(
-                    BigDecimal.valueOf(returnStockQuantity)
+                    BigDecimal.valueOf(enteredQuantity)
             );
 
             MedicineReturnItem returnItem = new MedicineReturnItem();

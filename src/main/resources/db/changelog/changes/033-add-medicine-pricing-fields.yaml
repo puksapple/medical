@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 033-add-medicine-pricing-fields
+      author: puks
+
+      changes:
+        - addColumn:
+            tableName: medicines
+            columns:
+              - column:
+                  name: individual_unit_price
+                  type: DECIMAL(10,2)
+
+              - column:
+                  name: pack_unit_price
+                  type: DECIMAL(10,2)
